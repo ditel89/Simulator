@@ -37,6 +37,8 @@ private:
     QStringList IMSData;
     QVector<double> IMSData_a;
     QVector<double> IMSData_x;
+
+    QVector<double> DownSampling_data;
     QTimer *timer = new QTimer();
 
     QCPItemText *textLabel;

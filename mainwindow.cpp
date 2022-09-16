@@ -117,27 +117,41 @@ void MainWindow::on_pushButton_clicked()
                 peak_cnt = peaks_x[0];
 
             }
-        } else if(fileinfo == "csv"){
-           qDebug() << "CSV";
-           IMSData_a.clear();
+        }else if(fileinfo == "csv"){
+            qDebug() << "CSV";
+            IMSData_a.clear();
 
-           ui->widget->yAxis->setRange(4200000,3300000);
+            ui->widget->yAxis->setRange(4200000,3300000);
 
-           MaxPeakThreshold = 3300000;
-           MinPeakThreshold = 4000000;
-           peak_distance = 450;
+            MaxPeakThreshold = 3300000;
+            MinPeakThreshold = 4000000;
+            peak_distance = 450;
 
-           ArraySize = 1500;
+            ArraySize = 1500;
 
-           while (!loadFile.atEnd()) {
+            while (!loadFile.atEnd()) {
                QByteArray loadData = loadFile.readLine();
                IMSData_a.append(loadData.split(',')[1].toInt()*-1);
                IMSData_x.append(loadData.split(',')[0].toInt());
-           }
+            }
 
-           qDebug() << "CSV2";
-           peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
-           peak_cnt = peaks_x[0];
+            int test = 0;
+            for(int i =0; i < IMSData_a.size(); i++){
+                if(i % 10 == 0 && i > 0){
+                   //qDebug() << "i = " << i;
+                   test = test / 10;
+                   DownSampling_data << test;
+                   test = 0;
+                   test += IMSData_a[i];
+                }
+                test += IMSData_a[i];
+            }
+            MinPeakThreshold = 4300000;
+            qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
+            qDebug() << "CSV2";
+            //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+            peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+            peak_cnt = peaks_x[0];
 
         } else {
             qDebug() << "not supported";
@@ -146,7 +160,7 @@ void MainWindow::on_pushButton_clicked()
 
 
         //peakdet(IMSData_a,IMSData_x,8000000, 8000000, 8000000);
-        timer->start(700);
+        timer->start();
 }
 
 void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double thresholdMax){
@@ -196,7 +210,7 @@ bool MainWindow::compare(double x, double y){
 
 void MainWindow::qwt_update()
 {
-#if 1
+#if 0
     for(int j=0; j < ArraySize; j++){
         if(j+(cnt*ArraySize) == IMSData_a.size()){
             qDebug() << "repeat";
@@ -213,7 +227,7 @@ void MainWindow::qwt_update()
 
     peak_detect(aa, 3900000, 3300000);
 #endif
-#if 0   //test freq using peak detect
+#if 0   //test freq using peak detect - original data
     for(int j=0; j < ArraySize; j++){
         if(j+peak_cnt >= IMSData_a.size()){
             qDebug() << "repeat";
@@ -313,6 +327,51 @@ void MainWindow::qwt_update()
 
 #endif
 
+#if 1   // using Down sampling data
+    for(int j=0; j < 200; j++){
+        if(j+peak_cnt >= DownSampling_data.size()){
+            qDebug() << "repeat";
+            qDebug() << "if" << j+peak_cnt << "END" << DownSampling_data.size();
+            peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+            peak_cnt = peaks_x[0];
+            timer->stop();
+        }
+        //IMSData_aa[j] = IMSData_a[j+(cnt*ArraySize)];
+        //IMSData_xx[j] = j;
+
+
+
+        aa << (double) DownSampling_data[j+peak_cnt];
+        xx << (double) j;
+        //xx << (double) j-687;
+    }
+//    qDebug() << "2";
+//    qDebug() << "peaks_x[peak_cnt]" << peak_cnt;
+//    qDebug() << "origin" << IMSData_a[peak_cnt] << "aa" << aa[0];
+
+    peaks_x.clear();
+    peaks_y.clear();
+
+    peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
+//    qDebug() << "find peak";
+//    qDebug() << "aa size" << aa.size();
+    //qDebug() << "peak cnt" << peak_cnt;
+
+    for(int i=0; i < peaks_x.size(); i++){
+        if(peaks_x[i] > 60){
+            peak_cnt = peak_cnt + peaks_x[i];
+            break;
+        }
+    }
+
+
+    qDebug() << "peaks_x" << peaks_x << "peaks_y" << peaks_y;
+
+
+
+
+#endif
+
     //peak_detect(aa, 8000000, 7000000);
     //peak_detect(aa, 3900000, 3300000);
 
@@ -320,8 +379,9 @@ void MainWindow::qwt_update()
     ui->widget->graph(0)->setData(xx,aa);
     ui->widget->graph(1)->setData(peaks_x,peaks_y);
     ui->widget->yAxis->rescale(true);
+    ui->widget->xAxis->setRange(0,60);
     //ui->widget->xAxis->setRange(0,xx.size());
-    ui->widget->xAxis->setRange(0,peak_distance);
+    //ui->widget->xAxis->setRange(0,peak_distance);
 
     show_TextLabel(Detection_x, Detection_y);
 
