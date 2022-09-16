@@ -196,7 +196,7 @@ bool MainWindow::compare(double x, double y){
 
 void MainWindow::qwt_update()
 {
-#if 0
+#if 1
     for(int j=0; j < ArraySize; j++){
         if(j+(cnt*ArraySize) == IMSData_a.size()){
             qDebug() << "repeat";
@@ -213,7 +213,7 @@ void MainWindow::qwt_update()
 
     peak_detect(aa, 3900000, 3300000);
 #endif
-#if 1   //test freq using peak detect
+#if 0   //test freq using peak detect
     for(int j=0; j < ArraySize; j++){
         if(j+peak_cnt >= IMSData_a.size()){
             qDebug() << "repeat";
