@@ -146,7 +146,7 @@ void MainWindow::on_pushButton_clicked()
 
 
         //peakdet(IMSData_a,IMSData_x,8000000, 8000000, 8000000);
-        timer->start();
+        timer->start(700);
 }
 
 void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double thresholdMax){
@@ -270,8 +270,12 @@ void MainWindow::qwt_update()
             ui->widget->clearItems();
         }
 
-        if(peaks_x[i] <= 780){
-            MaxPeaks << peaks_y[i];
+        if(peaks_x[i] <= 730){
+            if(peaks_x[i] < 500){
+                MaxPeaks << 4000000;
+            }else{
+                MaxPeaks << peaks_y[i];
+            }
 //        if(peaks_x[i] >= peak_distance){
 //            if(peaks_y[i] < peaks_y[i+1]){
 //                peak_cnt = peak_cnt + peaks_x[i+1];
@@ -287,11 +291,23 @@ void MainWindow::qwt_update()
 //            }
         }
     }
+
+    if(MaxPeaks.size() == 0){
+        qDebug() << "Max Peaks size is empty";
+       for (int i =0 ; i < peaks_x.size()-1; i++){
+           if(peaks_x[i] > 730){
+               MaxPeaks << peaks_y[i];
+               break;
+           }
+       }
+    }
+
     auto max = std::minmax_element(MaxPeaks.begin(), MaxPeaks.end());
     int max_idx = std::distance(MaxPeaks.begin(), max.first);
     qDebug() << "MaxPeaks" << MaxPeaks;
     qDebug() << "peaks_x" << peaks_x << "peaks_y" << peaks_y;
     qDebug() << "Max_idx" << max_idx;
+    qDebug() << "peaks_x[max_idx]" << peaks_x[max_idx] << "peaks_y[max_idx]" << peaks_y[max_idx];
     peak_cnt = peak_cnt + peaks_x[max_idx];
 
 
