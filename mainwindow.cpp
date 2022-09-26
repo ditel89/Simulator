@@ -27,14 +27,24 @@ MainWindow::MainWindow(QWidget *parent)
     ui->widget->yAxis->setLabel("y");
 
     ui->widget->xAxis->setRange(0,5000);
+    ui->widget->yAxis->setRange(4690000,3400057);
     ui->widget->yAxis->setRangeReversed(true);
     ui->widget->replot();
+
+    QSpinBox *test = new QSpinBox();
+    ui->spinBox->setRange(4200000,48000000);
+    ui->spinBox->setSingleStep(10000);
+    ui->spinBox->setValue(4400000);
+    connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(on_spinBox_valueChanged(int)));
+
+    //    ui->textBrowser_2->setText(test);
 
     //QTimer *timer = new QTimer();
     timer->setInterval(100);
     connect(timer,SIGNAL(timeout()),this, SLOT(qwt_update()));
 
     ui->pushButton_2->setCheckable(true);
+    ui->pushButton_2->setText("STOP");
     ui->pushButton_2->setStyleSheet("background-color:green;");
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(on_pushButton_2_toggled()));
 
@@ -147,7 +157,7 @@ void MainWindow::on_pushButton_clicked()
             }
             test += IMSData_a[i];
         }
-        MinPeakThreshold = 4300000;
+        MinPeakThreshold = 4400000;
         qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
         qDebug() << "CSV2";
         //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
@@ -195,7 +205,8 @@ void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double t
     //qDebug() << "X peak = " << peaks_x<< "Y peak = " << peaks_y;
 }
 
-void MainWindow::show_TextLabel(double x, double y){
+void MainWindow::show_TextLabel(double x, double y)
+{
     textLabel = new QCPItemText(ui->widget);
     textLabel->position->setCoords(x, y+30000); // place position at center/top of axis rect
     textLabel->setText(Material);
@@ -205,8 +216,57 @@ void MainWindow::show_TextLabel(double x, double y){
     textLabel->setBrush(QColor(Qt::red));
 }
 
+void MainWindow::show_line(int x, int y)
+{
+    QCPItemLine *DrawLine = new QCPItemLine(ui->widget);
+    DrawLine->setPen(QColor(Qt::red));
+    DrawLine->start->setCoords(0,y);
+    DrawLine->end->setCoords(x,y);
+
+}
+
 bool MainWindow::compare(double x, double y){
     return x < y;
+}
+
+void MainWindow::MobilityDetection(){
+    for (int i =0 ; i < peaks_x.size(); i++){
+        //if(abs(peaks_x[i+1] - peaks_x[0]) >= 650){
+        if(peaks_x[i] > 8 && peaks_x[i] < 11){
+            //qDebug() << "peaks_x[i]" << peaks_x[i] << "peaks_y[i]" << peaks_y[i];
+            Material = "Detection TNT";
+            Detection_x = peaks_x[i];
+            Detection_y = peaks_y[i];
+        }else if(peaks_x[i] > 11 && peaks_x[i] < 12){
+            Material = "Detection RDX";
+            Detection_x = peaks_x[i];
+            Detection_y = peaks_y[i];
+        }
+        else if(peaks_x[i] > 12 && peaks_x[i] < 15){
+            Material = "Detection NG";
+            Detection_x = peaks_x[i];
+            Detection_y = peaks_y[i];
+        }
+        else if(peaks_x[i] > 18 && peaks_x[i] < 20){
+            Material = "Detection PETN";
+            Detection_x = peaks_x[i];
+            Detection_y = peaks_y[i];
+        }else{
+            ui->widget->clearItems();
+        }
+    }
+}
+
+void MainWindow::variable_clear(){
+    aa.clear();
+    xx.clear();
+    peaks_x.clear();
+    peaks_y.clear();
+    MaxPeaks.clear();
+    Detection_x = 0;
+    Detection_y = 0;
+
+    Material = "......";
 }
 
 void MainWindow::qwt_update()
@@ -228,7 +288,7 @@ void MainWindow::qwt_update()
 
     peak_detect(aa, 3900000, 3300000);
 #endif
-#if 0   //test freq using peak detect - original data
+#if 0   //using original data
     for(int j=0; j < ArraySize; j++){
         if(j+peak_cnt >= IMSData_a.size()){
             qDebug() << "repeat";
@@ -337,67 +397,23 @@ void MainWindow::qwt_update()
             peak_cnt = peaks_x[0];
             timer->stop();
         }
-        //IMSData_aa[j] = IMSData_a[j+(cnt*ArraySize)];
-        //IMSData_xx[j] = j;
-
-
-
         aa << (double) DownSampling_data[j+peak_cnt];
         xx << (double) j;
-        //xx << (double) j-687;
     }
-//    qDebug() << "2";
-//    qDebug() << "peaks_x[peak_cnt]" << peak_cnt;
-//    qDebug() << "origin" << IMSData_a[peak_cnt] << "aa" << aa[0];
 
     peaks_x.clear();
     peaks_y.clear();
 
     peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
-//    qDebug() << "find peak";
-//    qDebug() << "aa size" << aa.size();
-    //qDebug() << "peak cnt" << peak_cnt;
 
-    for (int i =0 ; i < peaks_x.size(); i++){
-        //if(abs(peaks_x[i+1] - peaks_x[0]) >= 650){
-        if(peaks_x[i] > 8 && peaks_x[i] < 11){
-            //qDebug() << "peaks_x[i]" << peaks_x[i] << "peaks_y[i]" << peaks_y[i];
-            Material = "Detection TNT";
-            Detection_x = peaks_x[i];
-            Detection_y = peaks_y[i];
-        }else if(peaks_x[i] > 11 && peaks_x[i] < 12){
-            Material = "Detection RDX";
-            Detection_x = peaks_x[i];
-            Detection_y = peaks_y[i];
-        }
-        else if(peaks_x[i] > 12 && peaks_x[i] < 15){
-            Material = "Detection NG";
-            Detection_x = peaks_x[i];
-            Detection_y = peaks_y[i];
-        }
-        else if(peaks_x[i] > 18 && peaks_x[i] < 20){
-            Material = "Detection PETN";
-            Detection_x = peaks_x[i];
-            Detection_y = peaks_y[i];
-        }else{
-            qDebug() << "clear text, items ";
-            ui->widget->clearItems();
-        }
-    }
+    MobilityDetection();
 
     for(int i=0; i < peaks_x.size(); i++){
         if(peaks_x[i] > 60){
             peak_cnt = peak_cnt + peaks_x[i];
-            //qDebug() << "peak cnt = " << peak_cnt;
             break;
         }
     }
-
-
-    //qDebug() << "peaks_x" << peaks_x << "peaks_y" << peaks_y;
-
-
-
 
 #endif
 
@@ -407,26 +423,21 @@ void MainWindow::qwt_update()
     //qDebug() << "update" << IMSData_a.size();
     ui->widget->graph(0)->setData(xx,aa);
     ui->widget->graph(1)->setData(peaks_x,peaks_y);
-    ui->widget->yAxis->rescale(true);
+    //ui->widget->yAxis->rescale(true);
     ui->widget->xAxis->setRange(0,50);
+    ui->widget->yAxis->setRange(4690000,3800000);
     //ui->widget->xAxis->setRange(0,xx.size());
     //ui->widget->xAxis->setRange(0,peak_distance);
     ui->textBrowser_2->setText(Material);
+    ui->textBrowser_2->setTextColor(QColor(Qt::red));
 
     show_TextLabel(Detection_x, Detection_y);
+    show_line(50,MinPeakThreshold);
 
     ui->widget->update();
     ui->widget->replot();
-    aa.clear();
-    xx.clear();
-    peaks_x.clear();
-    peaks_y.clear();
-    MaxPeaks.clear();
-    Detection_x = 0;
-    Detection_y = 0;
 
-    Material = "......";
-
+    variable_clear();
 
     //timer->stop();
 }
@@ -455,3 +466,8 @@ void MainWindow::showPointToolTip(QMouseEvent *event)
 
 }
 
+void MainWindow::on_spinBox_valueChanged(int arg1)
+{
+    MinPeakThreshold = arg1;
+    //ui->textBrowser_2->setText(QString::number(arg1));
+}

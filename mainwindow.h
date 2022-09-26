@@ -20,6 +20,11 @@ public:
 
     void peak_detect(QVector<double> data, double thresholdMin, double thresholdMax);
     void show_TextLabel(double x, double y);
+    void show_line(int x, int y);
+    void MobilityDetection();
+    void variable_clear();
+
+    //#define DownSampling
 
 private slots:
     void on_pushButton_clicked();
@@ -28,6 +33,8 @@ private slots:
     void on_pushButton_2_toggled(bool checked);
     void showPointToolTip(QMouseEvent *event);
     bool compare(double x, double y);
+
+    void on_spinBox_valueChanged(int arg1);
 
 private:
     Ui::MainWindow *ui;

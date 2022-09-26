@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>867</width>
-    <height>640</height>
+    <width>921</width>
+    <height>582</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,13 +17,16 @@
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser">
-        <property name="maximumSize">
-         <size>
-          <width>684</width>
-          <height>29</height>
-         </size>
+      <item row="1" column="0" rowspan="3" colspan="4">
+       <widget class="QCustomPlot" name="widget" native="true"/>
+      </item>
+      <item row="3" column="4">
+       <widget class="QTextBrowser" name="textBrowser_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
        </widget>
       </item>
@@ -47,29 +50,6 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="pushButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Open</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="4">
-       <widget class="QTextBrowser" name="textBrowser_2">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="3">
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -86,8 +66,41 @@
         </property>
        </spacer>
       </item>
-      <item row="1" column="0" colspan="4">
-       <widget class="QCustomPlot" name="widget" native="true"/>
+      <item row="2" column="4">
+       <widget class="QSpinBox" name="spinBox"/>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="pushButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Open</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser">
+        <property name="maximumSize">
+         <size>
+          <width>684</width>
+          <height>29</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Threshold : </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -98,7 +111,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>867</width>
+     <width>921</width>
      <height>22</height>
     </rect>
    </property>
