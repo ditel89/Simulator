@@ -171,7 +171,7 @@ void MainWindow::on_pushButton_clicked()
 
 
     //peakdet(IMSData_a,IMSData_x,8000000, 8000000, 8000000);
-    timer->start();
+    timer->start(90);
 }
 
 void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double thresholdMax){
@@ -232,12 +232,12 @@ bool MainWindow::compare(double x, double y){
 void MainWindow::MobilityDetection(){
     for (int i =0 ; i < peaks_x.size(); i++){
         //if(abs(peaks_x[i+1] - peaks_x[0]) >= 650){
-        if(peaks_x[i] > 8 && peaks_x[i] < 11){
+        if(peaks_x[i] > 8 && peaks_x[i] < 10){
             //qDebug() << "peaks_x[i]" << peaks_x[i] << "peaks_y[i]" << peaks_y[i];
             Material = "Detection TNT";
             Detection_x = peaks_x[i];
             Detection_y = peaks_y[i];
-        }else if(peaks_x[i] > 11 && peaks_x[i] < 12){
+        }else if(peaks_x[i] > 10 && peaks_x[i] < 12){
             Material = "Detection RDX";
             Detection_x = peaks_x[i];
             Detection_y = peaks_y[i];
