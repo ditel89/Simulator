@@ -142,6 +142,7 @@ void MainWindow::on_pushButton_clicked()
 
         while (!loadFile.atEnd()) {
            QByteArray loadData = loadFile.readLine();
+           loadData = loadData.split('\n')[0];
            IMSData_a.append(loadData.split(',')[1].toInt()*-1);
            IMSData_x.append(loadData.split(',')[0].toInt());
         }
@@ -201,8 +202,8 @@ void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double t
             }
         }
     }
-    //qDebug() << "X size = " << peaks_x.size() << "Y size = " << peaks_y.size();
-    //qDebug() << "X peak = " << peaks_x<< "Y peak = " << peaks_y;
+//    qDebug() << "X size = " << peaks_x.size() << "Y size = " << peaks_y.size();
+//    qDebug() << "X peak = " << peaks_x<< "Y peak = " << peaks_y;
 }
 
 void MainWindow::show_TextLabel(double x, double y)
