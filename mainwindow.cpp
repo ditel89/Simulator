@@ -85,6 +85,7 @@ void MainWindow::on_pushButton_clicked()
         qDebug() << "Open Success";
     }
 
+    int DownSampling = 1;
 
     if (fileinfo == "json"){
 
@@ -108,8 +109,8 @@ void MainWindow::on_pushButton_clicked()
 
         IMSData_a.clear();
 
-        MaxPeakThreshold = 7000000;
-        MinPeakThreshold = 8000000;
+        MaxPeakThreshold = 7600000;
+        MinPeakThreshold = 8200000;
         peak_distance = 3900;
 
         ArraySize = 10000;
@@ -123,10 +124,34 @@ void MainWindow::on_pushButton_clicked()
     //            IMSData_a.append(subArray.at(i).toInt());
                 IMSData_x.append(i);
             }
-            peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+            int test = 0;
+            if (DownSampling == 1){
+                for(int i =0; i < IMSData_a.size(); i++){
+                    if(i % 50 == 0 && i > 0){
+                       //qDebug() << "i = " << i;
+                       test = test / 50;
+                       DownSampling_data << test;
+                       test = 0;
+                       test += IMSData_a[i];
+                    }
+                    test += IMSData_a[i];
+                }
+                //MinPeakThreshold = 4400000;
+                peak_distance = 60;
+                qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
+                qDebug() << "JSON2";
+                //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+                peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+            }else{
+             peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+            }
             peak_cnt = peaks_x[0];
 
         }
+        ui->spinBox->setRange(8200000,76000000);
+        ui->spinBox->setSingleStep(10000);
+        ui->spinBox->setValue(8200000);
+
     }else if(fileinfo == "csv"){
         qDebug() << "CSV";
         IMSData_a.clear();
@@ -140,32 +165,37 @@ void MainWindow::on_pushButton_clicked()
 
         ArraySize = 1500;
 
+
         while (!loadFile.atEnd()) {
            QByteArray loadData = loadFile.readLine();
            loadData = loadData.split('\n')[0];
            IMSData_a.append(loadData.split(',')[1].toInt()*-1);
            IMSData_x.append(loadData.split(',')[0].toInt());
         }
-
         int test = 0;
-        for(int i =0; i < IMSData_a.size(); i++){
-            if(i % 10 == 0 && i > 0){
-               //qDebug() << "i = " << i;
-               test = test / 10;
-               DownSampling_data << test;
-               test = 0;
-               test += IMSData_a[i];
+        if (DownSampling == 1){
+            for(int i =0; i < IMSData_a.size(); i++){
+                if(i % 10 == 0 && i > 0){
+                   //qDebug() << "i = " << i;
+                   test = test / 10;
+                   DownSampling_data << test;
+                   test = 0;
+                   test += IMSData_a[i];
+                }
+                test += IMSData_a[i];
             }
-            test += IMSData_a[i];
+            MinPeakThreshold = 4400000;
+            peak_distance = 50;
+            qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
+            qDebug() << "CSV2";
+            //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+            peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+        }else{
+         peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
         }
-        MinPeakThreshold = 4400000;
-        qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
-        qDebug() << "CSV2";
-        //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
-        peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
         peak_cnt = peaks_x[0];
 
-    } else {
+    }else{
         qDebug() << "not supported";
 
     }
@@ -230,7 +260,7 @@ bool MainWindow::compare(double x, double y){
     return x < y;
 }
 
-void MainWindow::MobilityDetection(){
+void MainWindow::MobilityDetection(QString info){
     for (int i =0 ; i < peaks_x.size(); i++){
         //if(abs(peaks_x[i+1] - peaks_x[0]) >= 650){
         if(peaks_x[i] > 8 && peaks_x[i] < 10){
@@ -272,6 +302,7 @@ void MainWindow::variable_clear(){
 
 void MainWindow::qwt_update()
 {
+
 #if 0
     for(int j=0; j < ArraySize; j++){
         if(j+(cnt*ArraySize) == IMSData_a.size()){
@@ -287,7 +318,7 @@ void MainWindow::qwt_update()
 
     cnt++;
 
-    peak_detect(aa, 3900000, 3300000);
+    peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
 #endif
 #if 0   //using original data
     for(int j=0; j < ArraySize; j++){
@@ -389,30 +420,35 @@ void MainWindow::qwt_update()
 
 #endif
 
-#if 1   // using Down sampling data
-    for(int j=0; j < 200; j++){
-        if(j+peak_cnt >= DownSampling_data.size()){
-            qDebug() << "repeat";
-            qDebug() << "if" << j+peak_cnt << "END" << DownSampling_data.size();
-            peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
-            peak_cnt = peaks_x[0];
-            timer->stop();
+#if 1  // using Down sampling data
+    //if(fileinfo == "csv"){
+    if(1){
+        //for(int j=0; j < 200; j++){
+        for(int j=0; j < 1000; j++){
+            if(j+peak_cnt >= DownSampling_data.size()){
+                qDebug() << "repeat";
+                qDebug() << "if" << j+peak_cnt << "END" << DownSampling_data.size();
+                peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+                peak_cnt = peaks_x[0];
+                timer->stop();
+            }
+            aa << (double) DownSampling_data[j+peak_cnt];
+            xx << (double) j;
         }
-        aa << (double) DownSampling_data[j+peak_cnt];
-        xx << (double) j;
-    }
 
-    peaks_x.clear();
-    peaks_y.clear();
+        peaks_x.clear();
+        peaks_y.clear();
 
-    peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
+        peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
 
-    MobilityDetection();
+        MobilityDetection(fileinfo);
 
-    for(int i=0; i < peaks_x.size(); i++){
-        if(peaks_x[i] > 60){
-            peak_cnt = peak_cnt + peaks_x[i];
-            break;
+        for(int i=0; i < peaks_x.size(); i++){
+            //if(peaks_x[i] > 60){
+            if(peaks_x[i] > peak_distance){
+                peak_cnt = peak_cnt + peaks_x[i];
+                break;
+            }
         }
     }
 
@@ -425,15 +461,19 @@ void MainWindow::qwt_update()
     ui->widget->graph(0)->setData(xx,aa);
     ui->widget->graph(1)->setData(peaks_x,peaks_y);
     //ui->widget->yAxis->rescale(true);
-    ui->widget->xAxis->setRange(0,50);
-    ui->widget->yAxis->setRange(4690000,3800000);
+    ui->widget->xAxis->setRange(0,peak_distance);
+    if(fileinfo == "csv"){
+        ui->widget->yAxis->setRange(4690000,3800000);
+    }else{
+        ui->widget->yAxis->setRange(8700000,7700000);
+    }
     //ui->widget->xAxis->setRange(0,xx.size());
     //ui->widget->xAxis->setRange(0,peak_distance);
     ui->textBrowser_2->setText(Material);
     ui->textBrowser_2->setTextColor(QColor(Qt::red));
 
     show_TextLabel(Detection_x, Detection_y);
-    show_line(50,MinPeakThreshold);
+    show_line(peak_distance,MinPeakThreshold);
 
     ui->widget->update();
     ui->widget->replot();

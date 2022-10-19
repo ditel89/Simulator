@@ -21,7 +21,7 @@ public:
     void peak_detect(QVector<double> data, double thresholdMin, double thresholdMax);
     void show_TextLabel(double x, double y);
     void show_line(int x, int y);
-    void MobilityDetection();
+    void MobilityDetection(QString info);
     void variable_clear();
 
     //#define DownSampling
@@ -63,6 +63,9 @@ private:
 
     int Detection_x;
     int Detection_y;
+
+    int x_range = 0;
+    int y_range = 0;
 
 
     double IMSData_xx[5000];
