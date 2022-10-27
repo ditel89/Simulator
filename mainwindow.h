@@ -64,10 +64,6 @@ private:
     int Detection_x;
     int Detection_y;
 
-    int x_range = 0;
-    int y_range = 0;
-
-
     double IMSData_xx[5000];
     double IMSData_aa[5000];
     //QVector<double> IMSData_xx;
