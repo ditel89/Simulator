@@ -93,108 +93,130 @@ void MainWindow::on_pushButton_clicked()
     ui->textBrowser->setText(file);
 
     //QFile loadFile(QStringLiteral("../TNT_test_1.json"));
-    QFile loadFile(file);
 
     QFileInfo info(file);
     fileinfo = info.completeSuffix();
     qDebug() << fileinfo;
 
-    if(!loadFile.open(QIODevice::ReadOnly)){
-        qWarning("Could not open file to read");
-    }
-    else {
-        qDebug() << "Open Success";
-    }
-
-
     if (fileinfo == "json"){
+        qDebug() << "Loda Json";
 
-        QByteArray loadData = loadFile.readAll();
-        loadFile.close();
+        Load_json_file(file);
 
-        QJsonParseError json_error;
-        QJsonDocument loadDoc(QJsonDocument::fromJson(loadData, &json_error));
-
-        if(json_error.error != QJsonParseError::NoError){
-            qDebug() << "json error!!";
-            return;
-        }
-
-        QJsonObject jsonObj = loadDoc.object();
-        QStringList keys = jsonObj.keys();
-
-        for(int i=0; i<keys.size(); i++){
-            qDebug() << "key" << i << "is : " << keys.at(i);
-        }
-
-        IMSData_a.clear();
-
-        MaxPeakThreshold = 7000000;
-        MinPeakThreshold = 8000000;
-        peak_distance = 3900;
-
-        ArraySize = 10000;
-
-        if(jsonObj.contains("ims")){
-            QJsonArray subArray = jsonObj.value("ims").toArray();
-            for(int i=0; i<subArray.size(); i++){
-                //qDebug() << i << "value is : " << subArray.at(i).toString();
-                QString convert = subArray.at(i).toString();
-                IMSData_a.append(convert.split(" ")[0].toInt()*-1);
-    //            IMSData_a.append(subArray.at(i).toInt());
-                IMSData_x.append(i);
-            }
-            qDebug() << "Ims data a = " << IMSData_a[1];
-            peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
-            peak_cnt = peaks_x[0];
-
-        }
         timer->start(90);
     }else if(fileinfo == "csv"){
-        qDebug() << "CSV";
-        IMSData_a.clear();
-        DownSampling_data.clear();
+        qDebug() << "Load CSV";
 
-        ui->widget->yAxis->setRange(4200000,3300000);
+        Load_csv_file(file);
 
-        MaxPeakThreshold = 3300000;
-        MinPeakThreshold = 4000000;
-        peak_distance = 450;
-
-        ArraySize = 1500;
-
-        while (!loadFile.atEnd()) {
-           QByteArray loadData = loadFile.readLine();
-           loadData = loadData.split('\n')[0];
-           IMSData_a.append(loadData.split(' ')[1].toInt()*-1);
-           IMSData_x.append(loadData.split(',')[0].toInt());
-        }
-        int test = 0;
-        for(int i =0; i < IMSData_a.size(); i++){
-            if(i % 10 == 0 && i > 0){
-               //qDebug() << "i = " << i;
-               test = test / 10;
-               DownSampling_data << test;
-               test = 0;
-               test += IMSData_a[i];
-            }
-            test += IMSData_a[i];
-        }
-        MinPeakThreshold = 4400000;
-        qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
-        qDebug() << "CSV2";
-        //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
-        //qDebug() << DownSampling_data.at(1);
-        peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
-        peak_cnt = peaks_x[0];
-        qDebug() << "CSV3";
         timer->start(90);
     } else {
         qDebug() << "not supported";
+    }
+    //peakdet(IMSData_a,IMSData_x,8000000, 8000000, 8000000);
+}
+void MainWindow::Load_json_file(QString File){
+
+    IMSData_a.clear();
+
+    MaxPeakThreshold = 7000000;
+    MinPeakThreshold = 8000000;
+    peak_distance = 3900;
+
+    ArraySize = 10000;
+
+    QFile loadFile(File);
+
+    if(!loadFile.open(QIODevice::ReadOnly)){
+       qWarning("Could not open file to read");
+    }
+    else {
+       qDebug() << "Open Success";
+    }
+
+
+    QByteArray loadData = loadFile.readAll();
+    loadFile.close();
+
+    QJsonParseError json_error;
+    QJsonDocument loadDoc(QJsonDocument::fromJson(loadData, &json_error));
+
+    if(json_error.error != QJsonParseError::NoError){
+        qDebug() << "json error!!";
+        return;
+    }
+
+    QJsonObject jsonObj = loadDoc.object();
+    QStringList keys = jsonObj.keys();
+
+    for(int i=0; i<keys.size(); i++){
+        qDebug() << "key" << i << "is : " << keys.at(i);
+    }
+
+    if(jsonObj.contains("ims")){
+        QJsonArray subArray = jsonObj.value("ims").toArray();
+        for(int i=0; i<subArray.size(); i++){
+            //qDebug() << i << "value is : " << subArray.at(i).toString();
+            QString convert = subArray.at(i).toString();
+            IMSData_a.append(convert.split(" ")[0].toInt()*-1);
+//            IMSData_a.append(subArray.at(i).toInt());
+            IMSData_x.append(i);
+        }
+        qDebug() << "Ims data a = " << IMSData_a[1];
+        peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+        peak_cnt = peaks_x[0];
 
     }
 
-    //peakdet(IMSData_a,IMSData_x,8000000, 8000000, 8000000);
+}
+
+void MainWindow::Load_csv_file(QString File){
+
+    IMSData_a.clear();
+    DownSampling_data.clear();
+
+    ui->widget->yAxis->setRange(4200000,3300000);
+
+    MaxPeakThreshold = 3300000;
+    MinPeakThreshold = 4000000;
+    peak_distance = 450;
+
+    ArraySize = 1500;
+
+
+    QFile loadFile(File);
+
+    if(!loadFile.open(QIODevice::ReadOnly)){
+       qWarning("Could not open file to read");
+    }
+    else {
+       qDebug() << "Open Success";
+    }
+
+    while (!loadFile.atEnd()) {
+       QByteArray loadData = loadFile.readLine();
+       loadData = loadData.split('\n')[0];
+       IMSData_a.append(loadData.split(' ')[1].toInt()*-1);
+       IMSData_x.append(loadData.split(',')[0].toInt());
+    }
+    int test = 0;
+    for(int i =0; i < IMSData_a.size(); i++){
+        if(i % 10 == 0 && i > 0){
+           //qDebug() << "i = " << i;
+           test = test / 10;
+           DownSampling_data << test;
+           test = 0;
+           test += IMSData_a[i];
+        }
+        test += IMSData_a[i];
+    }
+    MinPeakThreshold = 4400000;
+    qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
+    qDebug() << "CSV2";
+    //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+    //qDebug() << DownSampling_data.at(1);
+    peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+    peak_cnt = peaks_x[0];
 }
 
 void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double thresholdMax)
@@ -461,12 +483,12 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
     if(!checked){
         ui->pushButton_2->setStyleSheet("background-color:green;");
         ui->pushButton_2->setText("STOP");
-        timer->start();
+        timer->start(90);
     }
     else{
         ui->pushButton_2->setStyleSheet("background-color:red;");
         ui->pushButton_2->setText("START");
-        timer->stop();
+        timer->stop(90);
     }
 }
 
@@ -488,6 +510,11 @@ void MainWindow::on_spinBox_valueChanged(int arg1)
 
 int MainWindow::on_pushButton_3_clicked()
 {
+
+    QString date_format = "yyyy-MM-dd";
+    date = QDate::currentDate().toString(date_format);
+    Time = QTime::currentTime().toString();
+
     int ret = 0;
     int fd;
     ui->textBrowser_2->setText("Start IMS Sensor");
@@ -505,12 +532,11 @@ int MainWindow::on_pushButton_3_clicked()
     if (fd < 0){
         pabort("can't open device");
         ui->textBrowser_2->setText("can't open device");
-        return ret;
     }
     else if (fd == 30){
         pabort("permission denine");
         ui->textBrowser_2->setText("permission denine");
-        return ret;
+        return 0;
     }
 
     //Mode setting
@@ -549,8 +575,9 @@ int MainWindow::on_pushButton_3_clicked()
     ::close(fd);      // spi close
 
     qDebug() << "5";
-    data_output();
-    filter_output();
+    data_output(date,Time);
+    filter_output(date,Time);
+    Load_csv_file("/home/keti/projects/TNT_8.csv");
     //data_send();
 
     qDebug() << "6";
@@ -563,6 +590,7 @@ int MainWindow::on_pushButton_3_clicked()
 
     qDebug() << "finish spi device";
     ui->textBrowser_2->setText("Finish IMS Sensor");
+    qDebug() << "ret" << ret;
     return ret;
 
 }

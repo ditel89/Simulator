@@ -29,8 +29,8 @@ int gpio_drdy_release(void);
 int gpio_sync_release(void);
 int gpio_drdy_get(int timeout);
 void transfer(int fd);
-void filter_output(void) ;
-void data_output(void);
+QString filter_output(QString date, QString Time);
+void data_output(QString date, QString Time);
 void data_send(void);
 
 

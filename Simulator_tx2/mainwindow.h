@@ -23,8 +23,13 @@ public:
     void show_line(int x, int y);
     void MobilityDetection();
     void variable_clear();
+    void Load_json_file(QString File);
+    void Load_csv_file(QString File);
 
     //#define DownSampling
+
+    QString date;
+    QString Time;
 
 private slots:
     void on_pushButton_clicked();
@@ -79,5 +84,6 @@ private:
     QVector<int> MaxPeaks;
     QVector<double> peaks_y;
     QVector<double> peaks_x;
+
 };
 #endif // MAINWINDOW_H

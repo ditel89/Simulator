@@ -271,24 +271,20 @@ void transfer(int fd)
     
 }
 
-QString date_format = "yyyy-MM-dd";
-QString date = QDate::currentDate().toString(date_format);
-QString Time = QTime::currentTime().toString();
-QString DateTime = "../adc_output/filtered_" + date + Time + ".csv";
-QByteArray ba = DateTime.toLocal8Bit();
-const char *DateTime_2 = ba.data();
-//QString csv_name = "../adc_output/filtered_" + date + Time + ".csv";
-//char *csvnames = "../adc_output/filtered_" + date + Time + ".csv";
 
-void filter_output(void) 
+QString filter_output(QString date, QString Time)
 {
     qDebug() << date;
     qDebug() << Time;
 
+    QString filtered_filename = "/home/keti/projects/adc_output/filtered_" + date +"_"+ Time + ".csv";
+    QByteArray ba = filtered_filename.toLocal8Bit();
+    const char *filtered_filenames = ba.data();
+
     int cnt = 0;
 
     //FILE *fp = fopen("../adc_output/filtered.csv",  "wa+");
-    FILE *fp = fopen(DateTime_2,  "wa+");
+    FILE *fp = fopen(filtered_filenames,  "wa+");
     
 
     //fprintf(fp, "count, data\n");
@@ -328,15 +324,23 @@ void filter_output(void)
         fclose(fp);
         fp = NULL;
     }
+
+    return filtered_filename;
 }
 
-void data_output(void)
+
+void data_output(QString date, QString Time)
 {
+
+    QString raw_filename = "/home/keti/projects//adc_output/raw_" + date +"_"+ Time + ".csv";
+    QByteArray ba_2 = raw_filename.toLocal8Bit();
+    const char *raw_filenames = ba_2.data();
+
     int cnt = 0;
     int offset = 0;
     
-    FILE *fp = fopen("../adc_output/raw.csv",  "wa+");
-    //FILE *fp = fopen("../adc_output/raw_"+ date + Time + ".csv",  "wa+");
+    //FILE *fp = fopen("../adc_output/raw.csv",  "wa+");
+    FILE *fp = fopen(raw_filenames,  "wa+");
 
     //fprintf(fp, "count, data\n");
 
