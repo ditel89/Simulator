@@ -41,15 +41,15 @@ MainWindow::MainWindow(QWidget *parent)
     ui->widget->yAxis->setRangeReversed(true);
     ui->widget->replot();
 
-    time_t test_timer = time(NULL);
-    struct tm* t = localtime(&test_timer);
-    qDebug() << "current time"<< t->tm_year << t->tm_yday << t->tm_yday << t->tm_hour << t->tm_min << t->tm_sec;
+//    time_t test_timer = time(NULL);
+//    struct tm* t = localtime(&test_timer);
+//    qDebug() << "current time"<< t->tm_year << t->tm_yday << t->tm_yday << t->tm_hour << t->tm_min << t->tm_sec;
 
-    QDateTime dateTime = QDateTime::currentDateTime();
-    QString time_format = "yyyy-MM-dd HH:mm:ss";
-    QString print_time = dateTime.toString(time_format);
-    qDebug() << print_time;
-    qDebug() << ".........";
+//    QDateTime dateTime = QDateTime::currentDateTime();
+//    QString time_format = "yyyy-MM-dd HH:mm:ss";
+//    QString print_time = dateTime.toString(time_format);
+//    qDebug() << print_time;
+//    qDebug() << ".........";
 
 
     QSpinBox *test = new QSpinBox();
@@ -488,7 +488,7 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
     else{
         ui->pushButton_2->setStyleSheet("background-color:red;");
         ui->pushButton_2->setText("START");
-        timer->stop(90);
+        timer->stop();
     }
 }
 
