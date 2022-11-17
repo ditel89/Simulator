@@ -14,6 +14,9 @@
 #include <unistd.h>
 //-------------------------------
 
+#include <QThread>
+#include <QtConcurrent>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -511,13 +514,38 @@ void MainWindow::on_spinBox_valueChanged(int arg1)
 int MainWindow::on_pushButton_3_clicked()
 {
 
+    ui->textBrowser->setText("Open Sensor Device");
+    QProgressDialog qdialog;
+    qdialog.setLabelText(QString("sensing ..."));
+
+    QFutureWatcher<void> watcher;
+    connect(&watcher, &QFutureWatcher<void>::finished, &qdialog, &QProgressDialog::reset);
+    connect(&qdialog, &QProgressDialog::canceled, &watcher, &QFutureWatcher<void>::cancel);
+    connect(&watcher, &QFutureWatcher<void>::progressRangeChanged, &qdialog, &QProgressDialog::setRange);
+    connect(&watcher, &QFutureWatcher<void>::progressValueChanged, &qdialog, &QProgressDialog::setValue);
+
+    QFuture<void> result = QtConcurrent::run([=]{ openDevice(); });
+
+    watcher.setFuture(result);
+
+    qdialog.move(QApplication::desktop()->screen()->rect().center() - qdialog.rect().center());
+
+    qdialog.exec();
+
+    watcher.waitForFinished();
+
+}
+
+int MainWindow::openDevice() {
+
+    qDebug() << __func__ << QThread::currentThread();
+
     QString date_format = "yyyy-MM-dd";
     date = QDate::currentDate().toString(date_format);
     Time = QTime::currentTime().toString();
 
     int ret = 0;
     int fd;
-    ui->textBrowser_2->setText("Start IMS Sensor");
     qDebug() << "start spi device";
     // 프로그램 우선순위 높임
     rt_process();
@@ -531,11 +559,9 @@ int MainWindow::on_pushButton_3_clicked()
     qDebug() << "3 , fd = " << fd;
     if (fd < 0){
         pabort("can't open device");
-        ui->textBrowser_2->setText("can't open device");
     }
     else if (fd == 30){
         pabort("permission denine");
-        ui->textBrowser_2->setText("permission denine");
         return 0;
     }
 
@@ -589,8 +615,6 @@ int MainWindow::on_pushButton_3_clicked()
     #endif
 
     qDebug() << "finish spi device";
-    ui->textBrowser_2->setText("Finish IMS Sensor");
     qDebug() << "ret" << ret;
     return ret;
-
 }

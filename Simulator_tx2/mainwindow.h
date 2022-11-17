@@ -25,6 +25,7 @@ public:
     void variable_clear();
     void Load_json_file(QString File);
     void Load_csv_file(QString File);
+    int openDevice();
 
     //#define DownSampling
 
