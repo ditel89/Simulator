@@ -17,11 +17,14 @@
 #include <QThread>
 #include <QtConcurrent>
 
+#include <QWebEngineView>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Simulator");
 
     // -----------------Using QCustom Widget---------------------
     ui->widget->addGraph();
@@ -271,22 +274,22 @@ bool MainWindow::compare(double x, double y){
 void MainWindow::MobilityDetection(){
     for (int i =0 ; i < peaks_x.size(); i++){
         //if(abs(peaks_x[i+1] - peaks_x[0]) >= 650){
-        if(peaks_x[i] > 8 && peaks_x[i] < 10){
+        if(peaks_x[i] > 8 && peaks_x[i] <= 10){
             //qDebug() << "peaks_x[i]" << peaks_x[i] << "peaks_y[i]" << peaks_y[i];
             Material = "Detection TNT";
             Detection_x = peaks_x[i];
             Detection_y = peaks_y[i];
-        }else if(peaks_x[i] > 10 && peaks_x[i] < 12){
+        }else if(peaks_x[i] > 10 && peaks_x[i] <= 12){
             Material = "Detection RDX";
             Detection_x = peaks_x[i];
             Detection_y = peaks_y[i];
         }
-        else if(peaks_x[i] > 12 && peaks_x[i] < 15){
+        else if(peaks_x[i] > 12 && peaks_x[i] <= 15){
             Material = "Detection NG";
             Detection_x = peaks_x[i];
             Detection_y = peaks_y[i];
         }
-        else if(peaks_x[i] > 18 && peaks_x[i] < 20){
+        else if(peaks_x[i] > 18 && peaks_x[i] <= 20){
             Material = "Detection PETN";
             Detection_x = peaks_x[i];
             Detection_y = peaks_y[i];
@@ -434,7 +437,7 @@ void MainWindow::qwt_update()
             qDebug() << "if" << j+peak_cnt << "END" << DownSampling_data.size();
             peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
             peak_cnt = peaks_x[0];
-            timer->stop();
+            //timer->stop();
         }
         aa << (double) DownSampling_data[j+peak_cnt];
         xx << (double) j;
@@ -486,7 +489,13 @@ void MainWindow::on_pushButton_2_toggled(bool checked)
     if(!checked){
         ui->pushButton_2->setStyleSheet("background-color:green;");
         ui->pushButton_2->setText("STOP");
-        timer->start(90);
+        qDebug() << "Data size" << DownSampling_data.size();
+
+        if(DownSampling_data.size() == 0){
+            timer->stop();
+        }else{
+            timer->start(90);
+        }
     }
     else{
         ui->pushButton_2->setStyleSheet("background-color:red;");
@@ -522,7 +531,7 @@ int MainWindow::on_pushButton_3_clicked()
     connect(&watcher, &QFutureWatcher<void>::finished, &qdialog, &QProgressDialog::reset);
     connect(&qdialog, &QProgressDialog::canceled, &watcher, &QFutureWatcher<void>::cancel);
     connect(&watcher, &QFutureWatcher<void>::progressRangeChanged, &qdialog, &QProgressDialog::setRange);
-    connect(&watcher, &QFutureWatcher<void>::progressValueChanged, &qdialog, &QProgressDialog::setValue);
+    //connect(&watcher, &QFutureWatcher<void>::progressValueChanged, &qdialog, &QProgressDialog::setValue);
 
     QFuture<void> result = QtConcurrent::run([=]{ openDevice(); });
 
@@ -603,6 +612,7 @@ int MainWindow::openDevice() {
     qDebug() << "5";
     data_output(date,Time);
     filter_output(date,Time);
+    //Load_csv_file(filter_output(date,Time));
     Load_csv_file("/home/keti/projects/TNT_8.csv");
     //data_send();
 
@@ -617,4 +627,23 @@ int MainWindow::openDevice() {
     qDebug() << "finish spi device";
     qDebug() << "ret" << ret;
     return ret;
+}
+
+
+void MainWindow::on_toolButton_2_clicked()
+{
+//    qDebug() << "test web engine widget";
+//    QString link = "http://123.214.186.168:4080/container/#";
+//    QDesktopServices::openUrl(link);
+
+    //    "http://123.214.186.168:3080/#/"
+
+    QWebEngineView *view = new QWebEngineView();
+    view->move(QApplication::desktop()->screen()->rect().center() - view->rect().center());
+    //view->setUrl(link);
+    view->load(QUrl("http://123.214.186.168:4080/container/#"));
+    view->show();
+    view->page()->runJavaScript("document.domain", [this](const QVariant &v) { qDebug() << v.toString(); });
+
+
 }

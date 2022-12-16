@@ -332,7 +332,7 @@ QString filter_output(QString date, QString Time)
 void data_output(QString date, QString Time)
 {
 
-    QString raw_filename = "/home/keti/projects//adc_output/raw_" + date +"_"+ Time + ".csv";
+    QString raw_filename = "/home/keti/projects/adc_output/raw_" + date +"_"+ Time + ".csv";
     QByteArray ba_2 = raw_filename.toLocal8Bit();
     const char *raw_filenames = ba_2.data();
 

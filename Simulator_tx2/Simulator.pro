@@ -1,6 +1,6 @@
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport concurrent
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport concurrent webenginewidgets
 
 CONFIG += c++11 qwt
 
