@@ -547,6 +547,8 @@ int MainWindow::on_pushButton_3_clicked()
 
 int MainWindow::openDevice() {
 
+    timer->stop();
+
     qDebug() << __func__ << QThread::currentThread();
 
     QString date_format = "yyyy-MM-dd";
@@ -644,6 +646,4 @@ void MainWindow::on_toolButton_2_clicked()
     view->load(QUrl("http://123.214.186.168:4080/container/#"));
     view->show();
     view->page()->runJavaScript("document.domain", [this](const QVariant &v) { qDebug() << v.toString(); });
-
-
 }
