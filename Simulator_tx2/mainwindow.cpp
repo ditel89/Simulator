@@ -59,9 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     QSpinBox *test = new QSpinBox();
-    ui->spinBox->setRange(4200000,48000000);
+    ui->spinBox->setRange(4000000,48000000);
     ui->spinBox->setSingleStep(10000);
-    ui->spinBox->setValue(4400000);
+    ui->spinBox->setValue(4200000);
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(on_spinBox_valueChanged(int)));
 
     //    ui->textBrowser_2->setText(test);
@@ -203,6 +203,7 @@ void MainWindow::Load_csv_file(QString File){
        QByteArray loadData = loadFile.readLine();
        loadData = loadData.split('\n')[0];
        IMSData_a.append(loadData.split(' ')[1].toInt()*-1);
+//       IMSData_a.append(loadData.split(' ')[1].toInt());
        IMSData_x.append(loadData.split(',')[0].toInt());
     }
     int test = 0;
@@ -216,7 +217,8 @@ void MainWindow::Load_csv_file(QString File){
         }
         test += IMSData_a[i];
     }
-    MinPeakThreshold = 4400000;
+    //MinPeakThreshold = 4400000;
+    MinPeakThreshold = 4200000;
     qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
     qDebug() << "CSV2";
     //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
@@ -234,7 +236,7 @@ void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double t
         if(data[i] < thresholdMin){
             //qDebug() << data[i-1] << data[i];
             if(data[i-1] > data[i]){
-                if(data[i] < data[i + 1]){
+                if(data[i] < data[i + 1] || data[i] == data[i+1]){
                     peaks_y << (double) data[i];
                     peaks_x << (double) i;
 
@@ -243,8 +245,8 @@ void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double t
             }
         }
     }
-//    qDebug() << "X size = " << peaks_x.size() << "Y size = " << peaks_y.size();
-//    qDebug() << "X peak = " << peaks_x<< "Y peak = " << peaks_y;
+    qDebug() << "X size = " << peaks_x.size() << "Y size = " << peaks_y.size();
+    qDebug() << "X peak = " << peaks_x<< "Y peak = " << peaks_y;
 }
 
 void MainWindow::show_TextLabel(double x, double y)
@@ -327,6 +329,8 @@ void MainWindow::qwt_update()
     }
 
     cnt++;
+}
+//MinPeakThreshold = 4400000;
 
     peak_detect(aa, 3900000, 3300000);
 #endif
@@ -431,7 +435,8 @@ void MainWindow::qwt_update()
 #endif
 
 #if 1   // using Down sampling data
-    for(int j=0; j < 200; j++){
+    //for(int j=0; j < 200; j++){
+    for(int j=0; j < peak_distance; j++){
         if(j+peak_cnt >= DownSampling_data.size()){
             qDebug() << "repeat";
             qDebug() << "if" << j+peak_cnt << "END" << DownSampling_data.size();
@@ -466,15 +471,15 @@ void MainWindow::qwt_update()
     ui->widget->graph(0)->setData(xx,aa);
     ui->widget->graph(1)->setData(peaks_x,peaks_y);
     //ui->widget->yAxis->rescale(true);
-    ui->widget->xAxis->setRange(0,50);
-    ui->widget->yAxis->setRange(4690000,3800000);
+    ui->widget->xAxis->setRange(0,150);
+    ui->widget->yAxis->setRange(4690000,3600000);
     //ui->widget->xAxis->setRange(0,xx.size());
     //ui->widget->xAxis->setRange(0,peak_distance);
     ui->textBrowser_2->setText(Material);
     ui->textBrowser_2->setTextColor(QColor(Qt::red));
 
     show_TextLabel(Detection_x, Detection_y);
-    show_line(50,MinPeakThreshold);
+    show_line(100,MinPeakThreshold);
 
     ui->widget->update();
     ui->widget->replot();
@@ -613,9 +618,9 @@ int MainWindow::openDevice() {
 
     qDebug() << "5";
     data_output(date,Time);
-    filter_output(date,Time);
-    //Load_csv_file(filter_output(date,Time));
-    Load_csv_file("/home/keti/projects/TNT_8.csv");
+    //filter_output(date,Time);
+    Load_csv_file(filter_output(date,Time));
+    //Load_csv_file("/home/keti/projects/TNT_8.csv");
     //data_send();
 
     qDebug() << "6";
@@ -634,9 +639,9 @@ int MainWindow::openDevice() {
 
 void MainWindow::on_toolButton_2_clicked()
 {
-//    qDebug() << "test web engine widget";
-//    QString link = "http://123.214.186.168:4080/container/#";
-//    QDesktopServices::openUrl(link);
+    qDebug() << "test web engine widget";
+    QString link = "http://123.214.186.168:4080/container/#";
+    QDesktopServices::openUrl(link);
 
     //    "http://123.214.186.168:3080/#/"
 
