@@ -19,6 +19,8 @@
 
 #include <QWebEngineView>
 
+#define drug
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -43,8 +45,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->widget->yAxis->setLabel("y");
 
     ui->widget->xAxis->setRange(0,5000);
-    ui->widget->yAxis->setRange(4690000,3400057);
-    ui->widget->yAxis->setRangeReversed(true);
+    //bomb
+    //ui->widget->yAxis->setRange(4690000,3400057);
+    //drug
+    ui->widget->yAxis->setRange(6200000,3800000);
+    ui->widget->yAxis->setRangeReversed(false);
     ui->widget->replot();
 
 //    time_t test_timer = time(NULL);
@@ -59,9 +64,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     QSpinBox *test = new QSpinBox();
-    ui->spinBox->setRange(4000000,48000000);
+    ui->spinBox->setRange(4000000,60000000);
     ui->spinBox->setSingleStep(10000);
-    ui->spinBox->setValue(4200000);
+//    ui->spinBox->setValue(4200000);
+    ui->spinBox->setValue(5300000);
     connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(on_spinBox_valueChanged(int)));
 
     //    ui->textBrowser_2->setText(test);
@@ -76,7 +82,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(on_pushButton_2_toggled()));
 
     connect(ui->widget, SIGNAL(mouseMove(QMouseEvent*)), this,SLOT(showPointToolTip(QMouseEvent*)));
-
 }
 
 MainWindow::~MainWindow()
@@ -176,6 +181,8 @@ void MainWindow::Load_json_file(QString File){
 
 }
 
+//#define downsampling
+#ifdef bomb
 void MainWindow::Load_csv_file(QString File){
 
     IMSData_a.clear();
@@ -202,8 +209,8 @@ void MainWindow::Load_csv_file(QString File){
     while (!loadFile.atEnd()) {
        QByteArray loadData = loadFile.readLine();
        loadData = loadData.split('\n')[0];
-       IMSData_a.append(loadData.split(' ')[1].toInt()*-1);
-//       IMSData_a.append(loadData.split(' ')[1].toInt());
+//       IMSData_a.append(loadData.split(' ')[1].toInt()*-1);
+       IMSData_a.append(loadData.split(' ')[1].toInt());
        IMSData_x.append(loadData.split(',')[0].toInt());
     }
     int test = 0;
@@ -227,11 +234,82 @@ void MainWindow::Load_csv_file(QString File){
     peak_cnt = peaks_x[0];
 }
 
+#endif
+
+
+#ifdef drug
+void MainWindow::Load_csv_file(QString File){
+
+    IMSData_a.clear();
+    DownSampling_data.clear();
+
+    ui->widget->yAxis->setRange(4200000,3300000);
+//    bomb
+//    MaxPeakThreshold = 3300000;
+//    MinPeakThreshold = 4000000;
+    //drug
+    MaxPeakThreshold = 7200000;
+    MinPeakThreshold = 4600000;
+
+
+    QFile loadFile(File);
+
+    if(!loadFile.open(QIODevice::ReadOnly)){
+       qWarning("Could not open file to read");
+    }
+    else {
+       qDebug() << "Open Success";
+    }
+
+    while (!loadFile.atEnd()) {
+       QByteArray loadData = loadFile.readLine();
+       loadData = loadData.split('\n')[0];
+       //bomb
+       //IMSData_a.append(loadData.split(' ')[1].toInt()*-1);
+       // drug
+       IMSData_a.append(loadData.split(' ')[1].toInt());
+       IMSData_x.append(loadData.split(',')[0].toInt());
+    }
+#ifdef downsampling
+    peak_distance = 450;
+    ArraySize = 1500;
+    int test = 0;
+    for(int i =0; i < IMSData_a.size(); i++){
+        if(i % 10 == 0 && i > 0){
+           //qDebug() << "i = " << i;
+           test = test / 10;
+           DownSampling_data << test;
+           test = 0;
+           test += IMSData_a[i];
+        }
+        test += IMSData_a[i];
+    }
+    //MinPeakThreshold = 4400000;
+    MinPeakThreshold = 5300000;
+    qDebug() << "DownSampling_data size (8129) = " << DownSampling_data.size();
+    qDebug() << "CSV2";
+    //peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+    //qDebug() << DownSampling_data.at(1);
+    peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+#else
+    //MinPeakThreshold = 4400000;
+    MinPeakThreshold = 5300000;
+    peak_distance = 10000;
+    ArraySize = 12000;
+    qDebug() << "data size  = " << IMSData_a.size();
+    qDebug() << "CSV2";
+    peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+#endif
+    peak_cnt = peaks_x[0];
+}
+#endif
+
 void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double thresholdMax)
 {
-    //qDebug() << "data.size() = " << data.size();
-    //qDebug() << "thr = " << MinPeakThreshold << MaxPeakThreshold ;
+//    qDebug() << "data.size() = " << data.size();
+//    qDebug() << "thr = " << MinPeakThreshold << MaxPeakThreshold ;
     //qDebug() << data << data[2];
+#ifdef bomb
     for(int i=1; i < data.size()-1; i++){
         if(data[i] < thresholdMin){
             //qDebug() << data[i-1] << data[i];
@@ -245,8 +323,24 @@ void MainWindow::peak_detect(QVector<double> data, double thresholdMin, double t
             }
         }
     }
-    qDebug() << "X size = " << peaks_x.size() << "Y size = " << peaks_y.size();
-    qDebug() << "X peak = " << peaks_x<< "Y peak = " << peaks_y;
+#endif
+#ifdef drug
+    for(int i=1; i < data.size()-1; i++){
+        if(data[i] > thresholdMin){
+            //qDebug() << data[i-1] << data[i];
+            if(data[i-1] < data[i]){
+                if(data[i] > data[i + 1] || data[i] == data[i+1]){
+                    peaks_y << (double) data[i];
+                    peaks_x << (double) i;
+
+                }
+
+            }
+        }
+    }
+#endif
+//    qDebug() << "X size = " << peaks_x.size() << "Y size = " << peaks_y.size();
+//    qDebug() << "X peak = " << peaks_x<< "Y peak = " << peaks_y;
 }
 
 void MainWindow::show_TextLabel(double x, double y)
@@ -293,6 +387,7 @@ void MainWindow::MobilityDetection(){
         }
         else if(peaks_x[i] > 18 && peaks_x[i] <= 20){
             Material = "Detection PETN";
+
             Detection_x = peaks_x[i];
             Detection_y = peaks_y[i];
         }else{
@@ -312,28 +407,58 @@ void MainWindow::variable_clear(){
 
     Material = "......";
 }
-
+#ifdef bomb
 void MainWindow::qwt_update()
 {
-#if 0
-    for(int j=0; j < ArraySize; j++){
-        if(j+(cnt*ArraySize) == IMSData_a.size()){
+    // using Down sampling data
+    //for(int j=0; j < 200; j++){
+    for(int j=0; j < peak_distance; j++){
+        if(j+peak_cnt >= DownSampling_data.size()){
             qDebug() << "repeat";
-            qDebug() << "if" << j+(cnt*ArraySize) << "END" << IMSData_a.size();
-            cnt = 0;
+            qDebug() << "if" << j+peak_cnt << "END" << DownSampling_data.size();
+            peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
+            peak_cnt = peaks_x[0];
+            //timer->stop();
         }
-        //IMSData_aa[j] = IMSData_a[j+(cnt*ArraySize)];
-        //IMSData_xx[j] = j;
-        aa << (double) IMSData_a[j+(cnt*ArraySize)];
+        aa << (double) DownSampling_data[j+peak_cnt];
         xx << (double) j;
     }
 
-    cnt++;
-}
-//MinPeakThreshold = 4400000;
+    peaks_x.clear();
+    peaks_y.clear();
 
-    peak_detect(aa, 3900000, 3300000);
-#endif
+    peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
+
+    MobilityDetection();
+
+    for(int i=0; i < peaks_x.size(); i++){
+        if(peaks_x[i] > 60){
+            peak_cnt = peak_cnt + peaks_x[i];
+            break;
+        }
+    }
+
+    ui->widget->graph(0)->setData(xx,aa);
+    ui->widget->graph(1)->setData(peaks_x,peaks_y);
+
+    ui->widget->xAxis->setRange(0,150);
+    ui->widget->yAxis->setRange(4690000,3600000);
+    ui->widget->yAxis->setRangeReversed(true);
+
+    ui->textBrowser_2->setText(Material);
+    ui->textBrowser_2->setTextColor(QColor(Qt::red));
+
+    show_TextLabel(Detection_x, Detection_y);
+    show_line(100,MinPeakThreshold);
+
+    ui->widget->update();
+    ui->widget->replot();
+
+    variable_clear();
+}
+#else
+void MainWindow::qwt_update()
+{
 #if 0   //using original data
     for(int j=0; j < ArraySize; j++){
         if(j+peak_cnt >= IMSData_a.size()){
@@ -434,7 +559,7 @@ void MainWindow::qwt_update()
 
 #endif
 
-#if 1   // using Down sampling data
+#ifdef downsampling   // using Down sampling data
     //for(int j=0; j < 200; j++){
     for(int j=0; j < peak_distance; j++){
         if(j+peak_cnt >= DownSampling_data.size()){
@@ -442,7 +567,7 @@ void MainWindow::qwt_update()
             qDebug() << "if" << j+peak_cnt << "END" << DownSampling_data.size();
             peak_detect(DownSampling_data, MinPeakThreshold, MaxPeakThreshold);
             peak_cnt = peaks_x[0];
-            //timer->stop();
+            timer->stop();
         }
         aa << (double) DownSampling_data[j+peak_cnt];
         xx << (double) j;
@@ -453,10 +578,49 @@ void MainWindow::qwt_update()
 
     peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
 
-    MobilityDetection();
+//    MobilityDetection();
 
     for(int i=0; i < peaks_x.size(); i++){
         if(peaks_x[i] > 60){
+            peak_cnt = peak_cnt + peaks_x[i];
+            break;
+        }
+    }
+
+#else
+//    for(int j=0; j < ArraySize; j++){
+//        if(j+(cnt*ArraySize) == IMSData_a.size()){
+//            qDebug() << "repeat";
+//            qDebug() << "if" << j+(cnt*ArraySize) << "END" << IMSData_a.size();
+//            cnt = 0;
+//            timer->stop();
+//        }
+//        //IMSData_aa[j] = IMSData_a[j+(cnt*ArraySize)];
+//        //IMSData_xx[j] = j;
+//        aa << (double) IMSData_a[j+(cnt*ArraySize)];
+//        xx << (double) j;
+//    }
+//        cnt++;
+    for(int j=0; j < peak_distance; j++){
+        if(j+peak_cnt >= IMSData_a.size()){
+            qDebug() << "repeat";
+            qDebug() << "if" << j+peak_cnt << "END" << IMSData_a.size();
+            peak_detect(IMSData_a, MinPeakThreshold, MaxPeakThreshold);
+            peak_cnt = peaks_x[0];
+            timer->stop();
+        }
+        aa << (double) IMSData_a[j+peak_cnt];
+        xx << (double) j;
+    }
+
+    peaks_x.clear();
+    peaks_y.clear();
+
+    //MinPeakThreshold = 4400000;
+    peak_detect(aa, MinPeakThreshold, MaxPeakThreshold);
+
+    for(int i=0; i < peaks_x.size(); i++){
+        if(peaks_x[i] > 3200){
             peak_cnt = peak_cnt + peaks_x[i];
             break;
         }
@@ -471,15 +635,22 @@ void MainWindow::qwt_update()
     ui->widget->graph(0)->setData(xx,aa);
     ui->widget->graph(1)->setData(peaks_x,peaks_y);
     //ui->widget->yAxis->rescale(true);
-    ui->widget->xAxis->setRange(0,150);
-    ui->widget->yAxis->setRange(4690000,3600000);
+#ifdef downSampling
+    ui->widget->xAxis->setRange(0,130);
+#else
+     ui->widget->xAxis->setRange(0,1000);
+#endif
+    //ui->widget->yAxis->setRange(4690000,3600000);
+    //drug
+    //ui->widget->yAxis->setRange(7200000,3900000);
+    ui->widget->yAxis->setRange(5000000,3900000);
     //ui->widget->xAxis->setRange(0,xx.size());
     //ui->widget->xAxis->setRange(0,peak_distance);
     ui->textBrowser_2->setText(Material);
     ui->textBrowser_2->setTextColor(QColor(Qt::red));
 
     show_TextLabel(Detection_x, Detection_y);
-    show_line(100,MinPeakThreshold);
+    //show_line(200,MinPeakThreshold);
 
     ui->widget->update();
     ui->widget->replot();
@@ -488,19 +659,27 @@ void MainWindow::qwt_update()
 
     //timer->stop();
 }
-
+#endif
 void MainWindow::on_pushButton_2_toggled(bool checked)
 {
     if(!checked){
         ui->pushButton_2->setStyleSheet("background-color:green;");
         ui->pushButton_2->setText("STOP");
+#ifdef downsampling
         qDebug() << "Data size" << DownSampling_data.size();
-
         if(DownSampling_data.size() == 0){
             timer->stop();
         }else{
             timer->start(90);
         }
+#else
+        qDebug() << "Data size" << IMSData_a.size();
+        if(IMSData_a.size() == 0){
+            timer->stop();
+        }else{
+            timer->start(90);
+        }
+#endif
     }
     else{
         ui->pushButton_2->setStyleSheet("background-color:red;");
@@ -599,6 +778,7 @@ int MainWindow::openDevice() {
        pabort("can't set bits per word");
 
     ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
+    //    Load_csv_file(filter_output(date,Time
     if (ret == -1)
        pabort("can't get bits per word");
 
@@ -617,9 +797,14 @@ int MainWindow::openDevice() {
     ::close(fd);      // spi close
 
     qDebug() << "5";
+//    Load_csv_file(data_output(date,Time));
+//    filter_output(date,Time);
+#ifdef bomb
     data_output(date,Time);
-    //filter_output(date,Time);
     Load_csv_file(filter_output(date,Time));
+#else
+    Load_csv_file(data_output(date,Time));
+#endif
     //Load_csv_file("/home/keti/projects/TNT_8.csv");
     //data_send();
 
@@ -651,4 +836,18 @@ void MainWindow::on_toolButton_2_clicked()
     view->load(QUrl("http://123.214.186.168:4080/container/#"));
     view->show();
     view->page()->runJavaScript("document.domain", [this](const QVariant &v) { qDebug() << v.toString(); });
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event){
+    switch (event->key()) {
+    case Qt::Key_A:
+        //qDebug() << "key A";
+        on_pushButton_3_clicked();
+        break;
+    case Qt::Key_S:
+//        on_pushButton_2_toggled(checked);
+        break;
+    default:
+        break;
+    }
 }

@@ -46,6 +46,8 @@ private slots:
 
     void on_toolButton_2_clicked();
 
+    void keyPressEvent(QKeyEvent *event);
+
 private:
     Ui::MainWindow *ui;
 
